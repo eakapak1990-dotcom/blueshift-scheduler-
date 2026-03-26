@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BlueShift - ระบบจัดตารางกะการทำงาน (Custom)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        bs: {
+                            dark: '#0b1120',
+                            panel: '#1e293b',
+                            card: '#334155',
+                            blue: '#3b82f6',
+                            bluehover: '#2563eb',
+                            text: '#f8fafc',
+                            muted: '#94a3b8'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Sarabun', 'Segoe UI', 'Tahoma', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap');
+        
+        body { font-family: 'Sarabun', sans-serif; }
+        
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #0b1120; }
+        ::-webkit-scrollbar-thumb { background: #3b82f6; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #2563eb; }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, minmax(0, 1fr));
+            gap: 1px;
+            background-color: #334155;
+            border: 1px solid #334155;
+        }
+        
+        .calendar-cell {
+            background-color: #1e293b;
+            min-height: 110px;
+            padding: 0.4rem;
+            transition: background-color 0.2s;
+        }
+        
+        .calendar-cell:hover {
+            background-color: #273549;
+        }
+    </style>
+</head>
+<body class="bg-bs-dark text-bs-text h-screen flex overflow-hidden selection:bg-bs-blue selection:text-white">
+
+    <aside class="w-72 sm:w-80 bg-bs-panel flex flex-col border-r border-bs-card z-10 flex-shrink-0">
+        <div class="p-5 border-b border-bs-card flex items-center gap-3">
+            <i class="fa-solid fa-layer-group text-bs-blue text-2xl"></i>
+            <h1 class="text-xl font-bold tracking-wide">BlueShift<span class="text-bs-blue">.</span></h1>
+        </div>
+
+        <div class="flex-1 overflow-y-auto p-4 space-y-6">
+            <div>
+                <div class="flex justify-between items-center mb-3">
+                    <h2 class="font-semibold text-bs-muted uppercase text-xs tracking-wider"><i class="fa-solid fa-users mr-2"></i>พนักงาน</h2>
+                    <span id="empCount" class="bg-bs-card text-xs px-2 py-0.5 rounded-full font-medium">0</span>
+                </div>
+                <div class="flex gap-2 mb-3">
+                    <input type="text" id="newEmpName" placeholder="เพิ่มชื่อพนักงาน..." class="w-full bg-bs-dark border border-bs-card rounded px-3 py-1.5 text-sm focus:outline-none focus:border-bs-blue transition" onkeypress="if(event.key === 'Enter') addEmployee()">
+                    <button onclick="addEmployee()" class="bg-bs-blue hover:bg-bs-bluehover text-white px-3 py-1.5 rounded transition">
+                        <i class="fa-solid fa-plus"></i>
+                    </button>
+                </div>
+                <ul id="employeeList" class="space-y-1.5 text-sm">
+                    </ul>
+            </div>
+
+            <hr class="border-bs-card">
+
+            <div>
+                <div class="flex justify-between items-center mb-3">
+                    <h2 class="font-semibold text-bs-muted uppercase text-xs tracking-wider"><i class="fa-solid fa-clock mr-2"></i>กะและเวลาทำงาน</h2>
+                    <span id="shiftCount" class="bg-bs-card text-xs px-2 py-0.5 rounded-full font-medium">0</span>
+                </div>
+                
+                <div class="flex flex-col gap-2 mb-3 bg-bs-dark/50 p-2 rounded border border-bs-card/50">
+                    <div class="flex gap-2">
+                        <input type="text" id="newShiftName" placeholder="ชื่อกะ (เช่น กะพิเศษ)" class="w-1/2 bg-bs-dark border border-bs-card rounded px-2 py-1.5 text-xs focus:outline-none focus:border-bs-blue transition">
+                        <input type="text" id="newShiftTime" placeholder="เวลา (08:00-12:00)" class="w-1/2 bg-bs-dark border border-bs-card rounded px-2 py-1.5 text-xs focus:outline-none focus:border-bs-blue transition" onkeypress="if(event.key === 'Enter') addShift()">
+                    </div>
+                    <button onclick="addShift()" class="w-full bg-bs-card hover:bg-bs-blue text-white px-2 py-1.5 rounded transition text-xs font-semibold flex items-center justify-center gap-1">
+                        <i class="fa-solid fa-plus"></i> เพิ่มกะ
+                    </button>
+                </div>
+
+                <ul id="shiftList" class="space-y-2 text-sm">
+                    </ul>
+            </div>
+        </div>
+
+        <div class="p-4 border-t border-bs-card bg-bs-panel">
+            <button onclick="generateSchedule()" class="w-full bg-bs-blue hover:bg-bs-bluehover active:scale-95 text-white font-semibold py-2.5 rounded shadow-lg shadow-bs-blue/20 transition-all flex items-center justify-center gap-2">
+                <i class="fa-solid fa-wand-magic-sparkles"></i>
+                จัดตารางอัตโนมัติ
+            </button>
+        </div>
+    </aside>
+
+    <main class="flex-1 flex flex-col h-screen overflow-hidden relative">
+        <header class="bg-bs-panel h-16 flex items-center justify-between px-4 sm:px-6 border-b border-bs-card flex-shrink-0">
+            <div class="flex items-center gap-2 sm:gap-4">
+                <button onclick="changeMonth(-1)" class="w-8 h-8 rounded bg-bs-card hover:bg-bs-blue hover:text-white transition flex items-center justify-center">
+                    <i class="fa-solid fa-chevron-left text-sm"></i>
+                </button>
+                <h2 id="currentMonthLabel" class="text-lg sm:text-xl font-bold min-w-[140px] text-center">มกราคม 2026</h2>
+                <button onclick="changeMonth(1)" class="w-8 h-8 rounded bg-bs-card hover:bg-bs-blue hover:text-white transition flex items-center justify-center">
+                    <i class="fa-solid fa-chevron-right text-sm"></i>
+                </button>
+            </div>
+            <div>
+                <button onclick="clearSchedule()" class="text-bs-muted hover:text-red-400 text-sm flex items-center gap-2 px-3 py-1.5 rounded hover:bg-red-400/10 transition">
+                    <i class="fa-solid fa-trash-can"></i> <span class="hidden sm:inline">ล้างเดือนนี้</span>
+                </button>
+            </div>
+        </header>
+
+        <div class="flex-1 overflow-auto p-4 bg-bs-dark">
+            <div class="min-w-[700px]">
+                <div class="grid grid-cols-7 gap-1 mb-1">
+                    <div class="text-center text-xs font-semibold text-red-400 py-1 uppercase tracking-wider">อา.</div>
+                    <div class="text-center text-xs font-semibold text-bs-muted py-1 uppercase tracking-wider">จ.</div>
+                    <div class="text-center text-xs font-semibold text-bs-muted py-1 uppercase tracking-wider">อ.</div>
+                    <div class="text-center text-xs font-semibold text-bs-muted py-1 uppercase tracking-wider">พ.</div>
+                    <div class="text-center text-xs font-semibold text-bs-muted py-1 uppercase tracking-wider">พฤ.</div>
+                    <div class="text-center text-xs font-semibold text-bs-muted py-1 uppercase tracking-wider">ศ.</div>
+                    <div class="text-center text-xs font-semibold text-blue-400 py-1 uppercase tracking-wider">ส.</div>
+                </div>
+                <div id="calendarGrid" class="calendar-grid rounded shadow-lg overflow-hidden border border-bs-card">
+                    </div>
+            </div>
+        </div>
+        
+        <div id="toast" class="absolute bottom-6 right-6 transform translate-y-20 opacity-0 transition-all duration-300 bg-emerald-500 text-white px-4 py-2 rounded shadow-xl flex items-center gap-2 z-50 pointer-events-none">
+            <i class="fa-solid fa-circle-check"></i>
+            <span id="toastMsg" class="font-medium text-sm">สำเร็จ</span>
+        </div>
+    </main>
+
+    <script>
+        // Palette สำหรับการสร้างกะใหม่ให้สีไม่ซ้ำกัน
+        const shiftColorPalette = [
+            'bg-amber-500/10 text-amber-400 border-amber-500/20',
+            'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
+            'bg-indigo-500/10 text-indigo-400 border-indigo-500/20',
+            'bg-rose-500/10 text-rose-400 border-rose-500/20',
+            'bg-cyan-500/10 text-cyan-400 border-cyan-500/20',
+            'bg-purple-500/10 text-purple-400 border-purple-500/20',
+            'bg-lime-500/10 text-lime-400 border-lime-500/20'
+        ];
+
+        const state = {
+            currentDate: new Date(),
+            employees: [
+                { id: 'e1', name: 'สมชาย' },
+                { id: 'e2', name: 'สมหญิง' },
+                { id: 'e3', name: 'วิชัย' },
+                { id: 'e4', name: 'มาลี' }
+            ],
+            shifts: [
+                { id: 's1', name: 'กะเช้า', time: '08:00 - 16:00', color: shiftColorPalette[0] },
+                { id: 's2', name: 'กะบ่าย', time: '16:00 - 24:00', color: shiftColorPalette[1] }
+            ],
+            schedule: {} 
+        };
+
+        const thaiMonths = ["มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม", "มิถุนายน", "กรกฎาคม", "สิงหาคม", "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม"];
+
+        function init() {
+            renderEmployees();
+            renderShifts();
+            generateSchedule(true); 
+        }
+
+        // --- Employee Logic ---
+        function renderEmployees() {
+            const list = document.getElementById('employeeList');
+            document.getElementById('empCount').textContent = state.employees.length;
+            list.innerHTML = '';
+            
+            state.employees.forEach(emp => {
+                const li = document.createElement('li');
+                li.className = 'flex justify-between items-center bg-bs-dark p-1.5 rounded border border-bs-dark hover:border-bs-card group transition';
+                li.innerHTML = `
+                    <div class="flex items-center gap-2">
+                        <div class="w-6 h-6 rounded bg-bs-card text-xs flex items-center justify-center text-bs-muted font-bold">${emp.name.charAt(0)}</div>
+                        <span class="text-sm">${emp.name}</span>
+                    </div>
+                    <button onclick="removeEmployee('${emp.id}')" class="text-bs-muted hover:text-red-400 opacity-0 group-hover:opacity-100 transition px-1">
+                        <i class="fa-solid fa-times"></i>
+                    </button>
+                `;
+                list.appendChild(li);
+            });
+        }
+
+        function addEmployee() {
+            const input = document.getElementById('newEmpName');
+            const name = input.value.trim();
+            if (name) {
+                state.employees.push({ id: 'e' + Date.now(), name });
+                input.value = '';
+                renderEmployees();
+            }
+        }
+
+        function removeEmployee(id) {
+            state.employees = state.employees.filter(e => e.id !== id);
+            for (const date in state.schedule) {
+                for (const shift in state.schedule[date]) {
+                    if (state.schedule[date][shift] === id) {
+                        delete state.schedule[date][shift];
+                    }
+                }
+            }
+            renderEmployees();
+            renderCalendar();
+        }
+
+        // --- Shift Logic (NEW) ---
+        function renderShifts() {
+            const list = document.getElementById('shiftList');
+            document.getElementById('shiftCount').textContent = state.shifts.length;
+            list.innerHTML = '';
+            
+            state.shifts.forEach((shift, index) => {
+                const li = document.createElement('li');
+                li.className = `p-2 rounded border ${shift.color} flex justify-between items-center group relative overflow-hidden transition`;
+                li.innerHTML = `
+                    <div class="flex flex-col">
+                        <span class="font-bold text-[13px] tracking-wide">${shift.name}</span>
+                        <span class="text-[11px] opacity-75 font-mono mt-0.5">${shift.time}</span>
+                    </div>
+                    <button onclick="removeShift('${shift.id}')" class="text-white/40 hover:text-red-400 opacity-0 group-hover:opacity-100 transition absolute right-2 bg-bs-dark/60 p-1.5 rounded-md">
+                        <i class="fa-solid fa-trash-can text-xs"></i>
+                    </button>
+                `;
+                list.appendChild(li);
+            });
+        }
+
+        function addShift() {
+            const nameInput = document.getElementById('newShiftName');
+            const timeInput = document.getElementById('newShiftTime');
+            const name = nameInput.value.trim();
+            const time = timeInput.value.trim();
+
+            if (name && time) {
+                // วนลูปใช้สีจาก Palette
+                const colorIndex = state.shifts.length % shiftColorPalette.length;
+                const newShift = {
+                    id: 's' + Date.now(),
+                    name: name,
+                    time: time,
+                    color: shiftColorPalette[colorIndex]
+                };
+                
+                state.shifts.push(newShift);
+                nameInput.value = '';
+                timeInput.value = '';
+                renderShifts();
+                showToast('เพิ่มกะใหม่แล้ว', 'success');
+            } else {
+                showToast('กรุณากรอกชื่อกะและเวลาให้ครบ', 'warning');
+            }
+        }
+
+        function removeShift(id) {
+            state.shifts = state.shifts.filter(s => s.id !== id);
+            
+            // ลบกะนี้ออกจากตารางที่จัดไปแล้วด้วย
+            for (const date in state.schedule) {
+                if (state.schedule[date][id]) {
+                    delete state.schedule[date][id];
+                }
+            }
+            renderShifts();
+            renderCalendar();
+        }
+
+        // --- Calendar Logic ---
+        function changeMonth(offset) {
+            state.currentDate.setMonth(state.currentDate.getMonth() + offset);
+            renderCalendar();
+        }
+
+        function renderCalendar() {
+            const year = state.currentDate.getFullYear();
+            const month = state.currentDate.getMonth();
+            document.getElementById('currentMonthLabel').textContent = `${thaiMonths[month]} ${year}`;
+
+            const grid = document.getElementById('calendarGrid');
+            grid.innerHTML = '';
+
+            const firstDay = new Date(year, month, 1).getDay();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+            for (let i = 0; i < firstDay; i++) {
+                grid.appendChild(createCalendarCell('', null));
+            }
+
+            const today = new Date();
+            const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dateKey = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                grid.appendChild(createCalendarCell(day, dateKey, dateKey === todayStr));
+            }
+
+            const totalCells = firstDay + daysInMonth;
+            const remainingCells = (7 - (totalCells % 7)) % 7;
+            if(remainingCells < 7 && remainingCells > 0) {
+                for (let i = 0; i < remainingCells; i++) {
+                    grid.appendChild(createCalendarCell('', null));
+                }
+            }
+        }
+
+        function createCalendarCell(dayText, dateKey, isToday = false) {
+            const div = document.createElement('div');
+            div.className = 'calendar-cell flex flex-col relative group';
+            
+            if (!dayText) {
+                div.classList.add('opacity-30', 'bg-bs-dark');
+                return div;
+            }
+
+            const daySpanClass = isToday ? 'bg-bs-blue text-white w-6 h-6 rounded flex items-center justify-center text-xs font-bold mb-1.5 shadow-md shadow-bs-blue/40' : 'text-bs-muted text-xs font-bold mb-1.5 pl-1';
+            
+            let html = `<div class="${daySpanClass}">${dayText}</div>`;
+            html += `<div class="flex-1 flex flex-col gap-1">`;
+
+            if (dateKey && state.schedule[dateKey]) {
+                state.shifts.forEach(shift => {
+                    const empId = state.schedule[dateKey][shift.id];
+                    if (empId) {
+                        const emp = state.employees.find(e => e.id === empId);
+                        const empName = emp ? emp.name : '-';
+                        html += `
+                            <div class="text-[10px] px-1.5 py-0.5 rounded border ${shift.color} flex justify-between items-center transition-colors hover:brightness-125 cursor-default">
+                                <span class="font-semibold truncate opacity-80" title="${shift.time}">${shift.name}</span>
+                                <span class="truncate ml-1 text-white">${empName}</span>
+                            </div>
+                        `;
+                    }
+                });
+            }
+            
+            html += `</div>`;
+            div.innerHTML = html;
+            return div;
+        }
+
+        function generateSchedule(silent = false) {
+            if (state.shifts.length === 0) {
+                if(!silent) showToast('กรุณาสร้างกะการทำงานก่อน', 'warning');
+                return;
+            }
+
+            if (state.employees.length < state.shifts.length) {
+                if(!silent) showToast('คนไม่พอลงกะ (ขั้นต่ำควรมีเท่าจำนวนกะต่อวัน)', 'error');
+                return;
+            }
+
+            const year = state.currentDate.getFullYear();
+            const month = state.currentDate.getMonth();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+            let shiftCounts = {};
+            state.employees.forEach(e => shiftCounts[e.id] = 0);
+
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dateKey = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                
+                state.schedule[dateKey] = {};
+                let assignedToday = new Set();
+
+                const shuffledShifts = [...state.shifts];
+
+                shuffledShifts.forEach(shift => {
+                    let availableEmps = state.employees
+                        .filter(e => !assignedToday.has(e.id))
+                        .sort((a, b) => {
+                            const diff = shiftCounts[a.id] - shiftCounts[b.id];
+                            return diff === 0 ? Math.random() - 0.5 : diff;
+                        });
+
+                    if (availableEmps.length > 0) {
+                        const selectedEmp = availableEmps[0];
+                        state.schedule[dateKey][shift.id] = selectedEmp.id;
+                        assignedToday.add(selectedEmp.id);
+                        shiftCounts[selectedEmp.id]++;
+                    }
+                });
+            }
+
+            renderCalendar();
+            if(!silent) showToast('สุ่มตารางกะเดือนนี้สำเร็จ');
+        }
+
+        function clearSchedule() {
+            const year = state.currentDate.getFullYear();
+            const month = state.currentDate.getMonth();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            
+            for (let day = 1; day <= daysInMonth; day++) {
+                const dateKey = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                delete state.schedule[dateKey];
+            }
+            renderCalendar();
+            showToast('ล้างตารางเดือนนี้แล้ว', 'warning');
+        }
+
+        let toastTimeout;
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            const msgEl = document.getElementById('toastMsg');
+            const icon = toast.querySelector('i');
+            
+            msgEl.textContent = message;
+            toast.className = 'absolute bottom-6 right-6 transform transition-all duration-300 px-4 py-2 rounded shadow-xl flex items-center gap-2 z-50';
+            
+            if (type === 'success') {
+                toast.classList.add('bg-emerald-500', 'text-white');
+                icon.className = 'fa-solid fa-circle-check';
+            } else if (type === 'error') {
+                toast.classList.add('bg-red-500', 'text-white');
+                icon.className = 'fa-solid fa-triangle-exclamation';
+            } else if (type === 'warning') {
+                toast.classList.add('bg-amber-500', 'text-white');
+                icon.className = 'fa-solid fa-circle-info';
+            }
+
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            toast.classList.add('translate-y-0', 'opacity-100');
+
+            clearTimeout(toastTimeout);
+            toastTimeout = setTimeout(() => {
+                toast.classList.remove('translate-y-0', 'opacity-100');
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 2500);
+        }
+
+        // Initialize
+        init();
+    </script>
+</body>
+</html>
+
+
