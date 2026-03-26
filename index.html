@@ -43,12 +43,50 @@
             transition: background-color 0.2s;
         }
         @media (min-width: 640px) { .calendar-cell { padding: 0.4rem; min-height: 110px; } }
+
+        /* --- Print & PDF Styles --- */
+        @media print {
+            @page { size: A4 landscape; margin: 10mm; }
+            body { 
+                background: white !important; 
+                color: black !important; 
+                -webkit-print-color-adjust: exact !important; 
+                print-color-adjust: exact !important; 
+            }
+            /* ซ่อน Element ที่ไม่ต้องการใน PDF */
+            #sidebar, #sidebarOverlay, #toast, header button { display: none !important; }
+            /* ปรับ Layout ให้เต็มจอพอดี */
+            main { height: auto !important; overflow: visible !important; display: block !important; }
+            .bg-bs-dark { background-color: white !important; padding: 0 !important; }
+            .min-w-\\[700px\\] { min-width: 100% !important; }
+            
+            /* ปรับ Header */
+            header { background: white !important; border: none !important; height: auto !important; padding: 10px 0 20px 0 !important; justify-content: center !important; }
+            #currentMonthLabel { color: black !important; font-size: 24px !important; }
+            
+            /* ปรับตารางให้อ่านง่าย ประหยัดหมึก */
+            .calendar-grid { background-color: #e2e8f0 !important; border: 1px solid #cbd5e1 !important; }
+            .calendar-cell { background-color: white !important; break-inside: avoid; min-height: 80px !important; }
+            
+            /* สีตัวอักษรในตาราง */
+            .text-bs-muted { color: #475569 !important; }
+            .bg-bs-blue { background-color: #3b82f6 !important; color: white !important; }
+            
+            /* ปรับป้ายกะทำงานให้สีชัดขึ้นบนพื้นขาว */
+            .calendar-cell > div > div {
+                border-width: 1px !important;
+                border-style: solid !important;
+                color: #0f172a !important; /* ตัวอักษรเข้มขึ้น */
+            }
+        }
     </style>
 </head>
 <body class="bg-bs-dark text-bs-text h-screen flex overflow-hidden selection:bg-bs-blue selection:text-white">
 
+    <!-- Overlay -->
     <div id="sidebarOverlay" class="fixed inset-0 bg-black/60 z-20 hidden md:hidden transition-opacity" onclick="toggleSidebar()"></div>
 
+    <!-- Sidebar -->
     <aside id="sidebar" class="fixed inset-y-0 left-0 z-30 w-72 sm:w-80 bg-bs-panel flex flex-col border-r border-bs-card transform -translate-x-full md:relative md:translate-x-0 transition-transform duration-300 ease-in-out flex-shrink-0">
         <div class="p-4 sm:p-5 border-b border-bs-card flex items-center justify-between">
             <div class="flex items-center gap-3">
@@ -68,6 +106,7 @@
         </div>
 
         <div class="flex-1 overflow-y-auto p-4 space-y-6">
+            <!-- จัดการพนักงาน -->
             <div>
                 <div class="flex justify-between items-center mb-3">
                     <h2 class="font-semibold text-bs-muted uppercase text-xs tracking-wider"><i class="fa-solid fa-users mr-2"></i>พนักงาน</h2>
@@ -79,12 +118,12 @@
                         <i class="fa-solid fa-plus"></i>
                     </button>
                 </div>
-                <ul id="employeeList" class="space-y-1.5 text-sm">
-                    </ul>
+                <ul id="employeeList" class="space-y-1.5 text-sm"></ul>
             </div>
 
             <hr class="border-bs-card">
 
+            <!-- จัดการกะ -->
             <div>
                 <div class="flex justify-between items-center mb-3">
                     <h2 class="font-semibold text-bs-muted uppercase text-xs tracking-wider"><i class="fa-solid fa-clock mr-2"></i>กะและเวลาทำงาน</h2>
@@ -100,15 +139,15 @@
                         <i class="fa-solid fa-plus"></i> เพิ่มกะใหม่
                     </button>
                 </div>
-
-                <ul id="shiftList" class="space-y-2 text-sm">
-                    </ul>
+                <ul id="shiftList" class="space-y-2 text-sm"></ul>
             </div>
             <div class="h-10"></div> 
         </div>
     </aside>
 
+    <!-- Main Content -->
     <main class="flex-1 flex flex-col h-screen overflow-hidden relative min-w-0">
+        <!-- Header -->
         <header class="bg-bs-panel h-16 flex items-center justify-between px-3 sm:px-6 border-b border-bs-card flex-shrink-0 relative z-10">
             <div class="flex items-center gap-2 sm:gap-4">
                 <button onclick="toggleSidebar()" class="md:hidden w-10 h-10 rounded bg-bs-blue hover:bg-bs-bluehover text-white flex items-center justify-center shadow-lg">
@@ -126,12 +165,20 @@
                 </div>
             </div>
             
-            <button onclick="clearSchedule()" class="text-bs-muted hover:text-red-400 text-xs sm:text-sm flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1.5 rounded hover:bg-red-400/10 transition border border-transparent hover:border-red-400/20">
-                <i class="fa-solid fa-trash-can"></i> <span class="hidden sm:inline">ล้างตารางเดือนนี้</span><span class="sm:hidden">ล้าง</span>
-            </button>
+            <div class="flex gap-2">
+                <!-- ปุ่ม พิมพ์/PDF -->
+                <button onclick="window.print()" class="text-bs-muted hover:text-bs-blue text-xs sm:text-sm flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1.5 rounded hover:bg-bs-blue/10 transition border border-transparent hover:border-bs-blue/20">
+                    <i class="fa-solid fa-print"></i> <span class="hidden sm:inline">พิมพ์ / PDF</span>
+                </button>
+                
+                <button onclick="clearSchedule()" class="text-bs-muted hover:text-red-400 text-xs sm:text-sm flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1.5 rounded hover:bg-red-400/10 transition border border-transparent hover:border-red-400/20">
+                    <i class="fa-solid fa-trash-can"></i> <span class="hidden sm:inline">ล้าง</span>
+                </button>
+            </div>
         </header>
 
-        <div class="flex-1 overflow-auto bg-bs-dark p-2 sm:p-4 pb-20 sm:pb-4">
+        <!-- Calendar Area -->
+        <div class="flex-1 overflow-auto bg-bs-dark p-2 sm:p-4 pb-20 sm:pb-4" id="printArea">
             <div class="min-w-[700px] xl:min-w-full">
                 <div class="grid grid-cols-7 gap-1 mb-1 bg-bs-panel p-1 rounded-t border border-bs-card border-b-0">
                     <div class="text-center text-[10px] sm:text-xs font-semibold text-red-400 py-1 uppercase tracking-wider">อา.</div>
@@ -142,8 +189,7 @@
                     <div class="text-center text-[10px] sm:text-xs font-semibold text-bs-muted py-1 uppercase tracking-wider">ศ.</div>
                     <div class="text-center text-[10px] sm:text-xs font-semibold text-blue-400 py-1 uppercase tracking-wider">ส.</div>
                 </div>
-                <div id="calendarGrid" class="calendar-grid rounded-b shadow-lg overflow-hidden border border-bs-card">
-                    </div>
+                <div id="calendarGrid" class="calendar-grid rounded-b shadow-lg overflow-hidden border border-bs-card"></div>
             </div>
         </div>
         
@@ -155,13 +201,13 @@
 
     <script>
         const shiftColorPalette = [
-            'bg-amber-500/10 text-amber-400 border-amber-500/20',
-            'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
-            'bg-indigo-500/10 text-indigo-400 border-indigo-500/20',
-            'bg-rose-500/10 text-rose-400 border-rose-500/20',
-            'bg-cyan-500/10 text-cyan-400 border-cyan-500/20',
-            'bg-purple-500/10 text-purple-400 border-purple-500/20',
-            'bg-lime-500/10 text-lime-400 border-lime-500/20'
+            'bg-amber-500/10 text-amber-400 border-amber-500/20 print:bg-amber-100 print:border-amber-400',
+            'bg-emerald-500/10 text-emerald-400 border-emerald-500/20 print:bg-emerald-100 print:border-emerald-400',
+            'bg-indigo-500/10 text-indigo-400 border-indigo-500/20 print:bg-indigo-100 print:border-indigo-400',
+            'bg-rose-500/10 text-rose-400 border-rose-500/20 print:bg-rose-100 print:border-rose-400',
+            'bg-cyan-500/10 text-cyan-400 border-cyan-500/20 print:bg-cyan-100 print:border-cyan-400',
+            'bg-purple-500/10 text-purple-400 border-purple-500/20 print:bg-purple-100 print:border-purple-400',
+            'bg-lime-500/10 text-lime-400 border-lime-500/20 print:bg-lime-100 print:border-lime-400'
         ];
 
         const state = {
@@ -181,39 +227,26 @@
         const thaiMonthsShort = ["ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."];
 
         function init() {
-            renderEmployees();
-            renderShifts();
-            generateSchedule(true); 
+            renderEmployees(); renderShifts(); generateSchedule(true); 
         }
 
-        // --- Mobile Sidebar Logic ---
         function toggleSidebar() {
             const sidebar = document.getElementById('sidebar');
             const overlay = document.getElementById('sidebarOverlay');
-            
             sidebar.classList.toggle('-translate-x-full');
-            
             if (overlay.classList.contains('hidden')) {
-                overlay.classList.remove('hidden');
-                setTimeout(() => overlay.classList.add('opacity-100'), 10);
+                overlay.classList.remove('hidden'); setTimeout(() => overlay.classList.add('opacity-100'), 10);
             } else {
-                overlay.classList.remove('opacity-100');
-                setTimeout(() => overlay.classList.add('hidden'), 300);
+                overlay.classList.remove('opacity-100'); setTimeout(() => overlay.classList.add('hidden'), 300);
             }
         }
 
-        function toggleSidebarIfMobile() {
-            if (window.innerWidth < 768) {
-                toggleSidebar();
-            }
-        }
+        function toggleSidebarIfMobile() { if (window.innerWidth < 768) toggleSidebar(); }
 
-        // --- Employee Logic ---
         function renderEmployees() {
             const list = document.getElementById('employeeList');
             document.getElementById('empCount').textContent = state.employees.length;
             list.innerHTML = '';
-            
             state.employees.forEach(emp => {
                 const li = document.createElement('li');
                 li.className = 'flex justify-between items-center bg-bs-dark p-2 rounded border border-bs-dark hover:border-bs-card group transition';
@@ -222,43 +255,25 @@
                         <div class="w-6 h-6 rounded bg-bs-card text-xs flex items-center justify-center text-bs-muted font-bold">${emp.name.charAt(0)}</div>
                         <span class="text-sm">${emp.name}</span>
                     </div>
-                    <button onclick="removeEmployee('${emp.id}')" class="text-bs-muted hover:text-red-400 md:opacity-0 group-hover:opacity-100 transition px-2 py-1">
-                        <i class="fa-solid fa-times"></i>
-                    </button>
+                    <button onclick="removeEmployee('${emp.id}')" class="text-bs-muted hover:text-red-400 md:opacity-0 group-hover:opacity-100 transition px-2 py-1"><i class="fa-solid fa-times"></i></button>
                 `;
                 list.appendChild(li);
             });
         }
 
         function addEmployee() {
-            const input = document.getElementById('newEmpName');
-            const name = input.value.trim();
-            if (name) {
-                state.employees.push({ id: 'e' + Date.now(), name });
-                input.value = '';
-                renderEmployees();
-            }
+            const input = document.getElementById('newEmpName'); const name = input.value.trim();
+            if (name) { state.employees.push({ id: 'e' + Date.now(), name }); input.value = ''; renderEmployees(); }
         }
 
         function removeEmployee(id) {
             state.employees = state.employees.filter(e => e.id !== id);
-            for (const date in state.schedule) {
-                for (const shift in state.schedule[date]) {
-                    if (state.schedule[date][shift] === id) {
-                        delete state.schedule[date][shift];
-                    }
-                }
-            }
-            renderEmployees();
-            renderCalendar();
+            for (const date in state.schedule) { for (const shift in state.schedule[date]) { if (state.schedule[date][shift] === id) delete state.schedule[date][shift]; } }
+            renderEmployees(); renderCalendar();
         }
 
-        // --- Shift Logic ---
         function renderShifts() {
-            const list = document.getElementById('shiftList');
-            document.getElementById('shiftCount').textContent = state.shifts.length;
-            list.innerHTML = '';
-            
+            const list = document.getElementById('shiftList'); document.getElementById('shiftCount').textContent = state.shifts.length; list.innerHTML = '';
             state.shifts.forEach((shift) => {
                 const li = document.createElement('li');
                 li.className = `p-2 rounded border ${shift.color} flex justify-between items-center group relative overflow-hidden transition`;
@@ -267,214 +282,127 @@
                         <span class="font-bold text-xs sm:text-[13px] tracking-wide">${shift.name}</span>
                         <span class="text-[10px] sm:text-[11px] opacity-75 font-mono mt-0.5">${shift.time}</span>
                     </div>
-                    <button onclick="removeShift('${shift.id}')" class="text-white/40 hover:text-red-400 md:opacity-0 group-hover:opacity-100 transition absolute right-2 bg-bs-dark/60 p-2 rounded-md flex items-center justify-center">
-                        <i class="fa-solid fa-trash-can text-xs"></i>
-                    </button>
+                    <button onclick="removeShift('${shift.id}')" class="text-white/40 hover:text-red-400 md:opacity-0 group-hover:opacity-100 transition absolute right-2 bg-bs-dark/60 p-2 rounded-md flex items-center justify-center"><i class="fa-solid fa-trash-can text-xs"></i></button>
                 `;
                 list.appendChild(li);
             });
         }
 
         function addShift() {
-            const nameInput = document.getElementById('newShiftName');
-            const timeInput = document.getElementById('newShiftTime');
-            const name = nameInput.value.trim();
-            const time = timeInput.value.trim();
-
+            const nameInput = document.getElementById('newShiftName'); const timeInput = document.getElementById('newShiftTime');
+            const name = nameInput.value.trim(); const time = timeInput.value.trim();
             if (name && time) {
                 const colorIndex = state.shifts.length % shiftColorPalette.length;
                 state.shifts.push({ id: 's' + Date.now(), name: name, time: time, color: shiftColorPalette[colorIndex] });
-                nameInput.value = ''; timeInput.value = '';
-                renderShifts();
-                showToast('เพิ่มกะใหม่แล้ว', 'success');
-            } else {
-                showToast('กรุณากรอกชื่อกะและเวลาให้ครบ', 'warning');
-            }
+                nameInput.value = ''; timeInput.value = ''; renderShifts(); showToast('เพิ่มกะใหม่แล้ว', 'success');
+            } else showToast('กรุณากรอกชื่อกะและเวลาให้ครบ', 'warning');
         }
 
         function removeShift(id) {
             state.shifts = state.shifts.filter(s => s.id !== id);
-            for (const date in state.schedule) {
-                if (state.schedule[date][id]) delete state.schedule[date][id];
-            }
-            renderShifts();
-            renderCalendar();
+            for (const date in state.schedule) { if (state.schedule[date][id]) delete state.schedule[date][id]; }
+            renderShifts(); renderCalendar();
         }
 
-        // --- Calendar Logic ---
-        function changeMonth(offset) {
-            state.currentDate.setMonth(state.currentDate.getMonth() + offset);
-            renderCalendar();
-        }
+        function changeMonth(offset) { state.currentDate.setMonth(state.currentDate.getMonth() + offset); renderCalendar(); }
 
         function renderCalendar() {
-            const year = state.currentDate.getFullYear();
-            const month = state.currentDate.getMonth();
-            
-            // ใช้ชื่อเดือนย่อบนมือถือ ชื่อเต็มบนคอม
-            const isMobile = window.innerWidth < 640;
-            const monthName = isMobile ? thaiMonthsShort[month] : thaiMonths[month];
+            const year = state.currentDate.getFullYear(); const month = state.currentDate.getMonth();
+            const isMobile = window.innerWidth < 640; const monthName = isMobile ? thaiMonthsShort[month] : thaiMonths[month];
             document.getElementById('currentMonthLabel').textContent = `${monthName} ${year}`;
 
-            const grid = document.getElementById('calendarGrid');
-            grid.innerHTML = '';
+            const grid = document.getElementById('calendarGrid'); grid.innerHTML = '';
+            const firstDay = new Date(year, month, 1).getDay(); const daysInMonth = new Date(year, month + 1, 0).getDate();
 
-            const firstDay = new Date(year, month, 1).getDay();
-            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            for (let i = 0; i < firstDay; i++) grid.appendChild(createCalendarCell('', null));
 
-            for (let i = 0; i < firstDay; i++) {
-                grid.appendChild(createCalendarCell('', null));
-            }
-
-            const today = new Date();
-            const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
-
+            const today = new Date(); const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
             for (let day = 1; day <= daysInMonth; day++) {
                 const dateKey = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
                 grid.appendChild(createCalendarCell(day, dateKey, dateKey === todayStr));
             }
 
-            const totalCells = firstDay + daysInMonth;
-            const remainingCells = (7 - (totalCells % 7)) % 7;
-            if(remainingCells < 7 && remainingCells > 0) {
-                for (let i = 0; i < remainingCells; i++) {
-                    grid.appendChild(createCalendarCell('', null));
-                }
-            }
+            const totalCells = firstDay + daysInMonth; const remainingCells = (7 - (totalCells % 7)) % 7;
+            if(remainingCells < 7 && remainingCells > 0) { for (let i = 0; i < remainingCells; i++) grid.appendChild(createCalendarCell('', null)); }
         }
 
         function createCalendarCell(dayText, dateKey, isToday = false) {
-            const div = document.createElement('div');
-            div.className = 'calendar-cell flex flex-col relative group';
-            
-            if (!dayText) {
-                div.classList.add('opacity-30', 'bg-bs-dark');
-                return div;
-            }
+            const div = document.createElement('div'); div.className = 'calendar-cell flex flex-col relative group';
+            if (!dayText) { div.classList.add('opacity-30', 'bg-bs-dark'); return div; }
 
-            const daySpanClass = isToday ? 'bg-bs-blue text-white w-5 h-5 sm:w-6 sm:h-6 rounded flex items-center justify-center text-[10px] sm:text-xs font-bold mb-1 shadow-md shadow-bs-blue/40' : 'text-bs-muted text-[11px] sm:text-xs font-bold mb-1 pl-1';
+            const daySpanClass = isToday ? 'bg-bs-blue text-white w-5 h-5 sm:w-6 sm:h-6 rounded flex items-center justify-center text-[10px] sm:text-xs font-bold mb-1 shadow-md shadow-bs-blue/40 print:bg-black print:text-white print:shadow-none' : 'text-bs-muted text-[11px] sm:text-xs font-bold mb-1 pl-1 print:text-black';
             
-            let html = `<div class="${daySpanClass}">${dayText}</div>`;
-            html += `<div class="flex-1 flex flex-col gap-0.5 sm:gap-1">`;
+            let html = `<div class="${daySpanClass}">${dayText}</div><div class="flex-1 flex flex-col gap-0.5 sm:gap-1">`;
 
             if (dateKey && state.schedule[dateKey]) {
                 state.shifts.forEach(shift => {
                     const empId = state.schedule[dateKey][shift.id];
                     if (empId) {
-                        const emp = state.employees.find(e => e.id === empId);
-                        const empName = emp ? emp.name : '-';
+                        const emp = state.employees.find(e => e.id === empId); const empName = emp ? emp.name : '-';
+                        // Add class specifically for print layout inside JS generated HTML
                         html += `
-                            <div class="text-[9px] sm:text-[10px] px-1 sm:px-1.5 py-0.5 rounded border ${shift.color} flex justify-between items-center">
-                                <span class="font-semibold truncate opacity-80 max-w-[40%]" title="${shift.time}">${shift.name}</span>
-                                <span class="truncate ml-1 text-white">${empName}</span>
+                            <div class="text-[9px] sm:text-[10px] px-1 sm:px-1.5 py-0.5 rounded border ${shift.color} flex justify-between items-center print:border-solid print:border-gray-400 print:text-black">
+                                <span class="font-semibold truncate opacity-80 max-w-[40%] print:opacity-100" title="${shift.time}">${shift.name}</span>
+                                <span class="truncate ml-1 text-white print:text-black print:font-semibold">${empName}</span>
                             </div>
                         `;
                     }
                 });
             }
-            
-            html += `</div>`;
-            div.innerHTML = html;
-            return div;
+            html += `</div>`; div.innerHTML = html; return div;
         }
 
         function generateSchedule(silent = false) {
-            if (state.shifts.length === 0) {
-                if(!silent) showToast('กรุณาสร้างกะการทำงานก่อน', 'warning');
-                return;
-            }
-            if (state.employees.length < state.shifts.length) {
-                if(!silent) showToast('พนักงานไม่พอลงกะ', 'error');
-                return;
-            }
+            if (state.shifts.length === 0) { if(!silent) showToast('กรุณาสร้างกะการทำงานก่อน', 'warning'); return; }
+            if (state.employees.length < state.shifts.length) { if(!silent) showToast('พนักงานไม่พอลงกะ', 'error'); return; }
 
-            const year = state.currentDate.getFullYear();
-            const month = state.currentDate.getMonth();
+            const year = state.currentDate.getFullYear(); const month = state.currentDate.getMonth();
             const daysInMonth = new Date(year, month + 1, 0).getDate();
-
-            let shiftCounts = {};
-            state.employees.forEach(e => shiftCounts[e.id] = 0);
+            let shiftCounts = {}; state.employees.forEach(e => shiftCounts[e.id] = 0);
 
             for (let day = 1; day <= daysInMonth; day++) {
                 const dateKey = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-                state.schedule[dateKey] = {};
-                let assignedToday = new Set();
+                state.schedule[dateKey] = {}; let assignedToday = new Set();
                 const shuffledShifts = [...state.shifts];
 
                 shuffledShifts.forEach(shift => {
-                    let availableEmps = state.employees
-                        .filter(e => !assignedToday.has(e.id))
-                        .sort((a, b) => {
-                            const diff = shiftCounts[a.id] - shiftCounts[b.id];
-                            return diff === 0 ? Math.random() - 0.5 : diff;
-                        });
-
+                    let availableEmps = state.employees.filter(e => !assignedToday.has(e.id)).sort((a, b) => {
+                        const diff = shiftCounts[a.id] - shiftCounts[b.id]; return diff === 0 ? Math.random() - 0.5 : diff;
+                    });
                     if (availableEmps.length > 0) {
-                        const selectedEmp = availableEmps[0];
-                        state.schedule[dateKey][shift.id] = selectedEmp.id;
-                        assignedToday.add(selectedEmp.id);
-                        shiftCounts[selectedEmp.id]++;
+                        const selectedEmp = availableEmps[0]; state.schedule[dateKey][shift.id] = selectedEmp.id;
+                        assignedToday.add(selectedEmp.id); shiftCounts[selectedEmp.id]++;
                     }
                 });
             }
-
-            renderCalendar();
-            if(!silent) showToast('จัดตารางสำเร็จ');
+            renderCalendar(); if(!silent) showToast('จัดตารางสำเร็จ');
         }
 
         function clearSchedule() {
-            const year = state.currentDate.getFullYear();
-            const month = state.currentDate.getMonth();
+            const year = state.currentDate.getFullYear(); const month = state.currentDate.getMonth();
             const daysInMonth = new Date(year, month + 1, 0).getDate();
-            
             for (let day = 1; day <= daysInMonth; day++) {
-                const dateKey = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-                delete state.schedule[dateKey];
+                const dateKey = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`; delete state.schedule[dateKey];
             }
-            renderCalendar();
-            showToast('ล้างตารางเดือนนี้แล้ว', 'warning');
+            renderCalendar(); showToast('ล้างตารางเดือนนี้แล้ว', 'warning');
         }
 
         let toastTimeout;
         function showToast(message, type = 'success') {
-            const toast = document.getElementById('toast');
-            const msgEl = document.getElementById('toastMsg');
-            const icon = toast.querySelector('i');
-            
-            msgEl.textContent = message;
-            // จัดให้อยู่ตรงกลางจอด้านล่าง
-            toast.className = 'absolute bottom-6 left-1/2 transform -translate-x-1/2 transition-all duration-300 px-5 py-2.5 rounded-full shadow-xl flex items-center gap-2 z-50 whitespace-nowrap';
-            
-            if (type === 'success') {
-                toast.classList.add('bg-emerald-500', 'text-white');
-                icon.className = 'fa-solid fa-circle-check';
-            } else if (type === 'error') {
-                toast.classList.add('bg-red-500', 'text-white');
-                icon.className = 'fa-solid fa-triangle-exclamation';
-            } else if (type === 'warning') {
-                toast.classList.add('bg-amber-500', 'text-white');
-                icon.className = 'fa-solid fa-circle-info';
-            }
+            const toast = document.getElementById('toast'); const msgEl = document.getElementById('toastMsg'); const icon = toast.querySelector('i');
+            msgEl.textContent = message; toast.className = 'absolute bottom-6 left-1/2 transform -translate-x-1/2 transition-all duration-300 px-5 py-2.5 rounded-full shadow-xl flex items-center gap-2 z-50 whitespace-nowrap';
+            if (type === 'success') { toast.classList.add('bg-emerald-500', 'text-white'); icon.className = 'fa-solid fa-circle-check'; } 
+            else if (type === 'error') { toast.classList.add('bg-red-500', 'text-white'); icon.className = 'fa-solid fa-triangle-exclamation'; } 
+            else if (type === 'warning') { toast.classList.add('bg-amber-500', 'text-white'); icon.className = 'fa-solid fa-circle-info'; }
 
-            toast.classList.remove('translate-y-20', 'opacity-0');
-            toast.classList.add('translate-y-0', 'opacity-100');
-
-            clearTimeout(toastTimeout);
-            toastTimeout = setTimeout(() => {
-                toast.classList.remove('translate-y-0', 'opacity-100');
-                toast.classList.add('translate-y-20', 'opacity-0');
-            }, 2000);
+            toast.classList.remove('translate-y-20', 'opacity-0'); toast.classList.add('translate-y-0', 'opacity-100');
+            clearTimeout(toastTimeout); toastTimeout = setTimeout(() => { toast.classList.remove('translate-y-0', 'opacity-100'); toast.classList.add('translate-y-20', 'opacity-0'); }, 2000);
         }
 
-        // Add resize listener to handle resize from mobile to desktop
         window.addEventListener('resize', () => {
-            renderCalendar(); // Re-render for text formatting
-            if (window.innerWidth >= 768) {
-                document.getElementById('sidebarOverlay').classList.add('hidden');
-                document.getElementById('sidebar').classList.remove('-translate-x-full');
-            } else {
-                document.getElementById('sidebar').classList.add('-translate-x-full');
-            }
+            renderCalendar();
+            if (window.innerWidth >= 768) { document.getElementById('sidebarOverlay').classList.add('hidden'); document.getElementById('sidebar').classList.remove('-translate-x-full'); } 
+            else document.getElementById('sidebar').classList.add('-translate-x-full');
         });
 
         init();
