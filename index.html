@@ -53,40 +53,32 @@
                 -webkit-print-color-adjust: exact !important; 
                 print-color-adjust: exact !important; 
             }
-            /* ซ่อน Element ที่ไม่ต้องการใน PDF */
             #sidebar, #sidebarOverlay, #toast, header button { display: none !important; }
-            /* ปรับ Layout ให้เต็มจอพอดี */
             main { height: auto !important; overflow: visible !important; display: block !important; }
             .bg-bs-dark { background-color: white !important; padding: 0 !important; }
             .min-w-\\[700px\\] { min-width: 100% !important; }
             
-            /* ปรับ Header */
             header { background: white !important; border: none !important; height: auto !important; padding: 10px 0 20px 0 !important; justify-content: center !important; }
             #currentMonthLabel { color: black !important; font-size: 24px !important; }
             
-            /* ปรับตารางให้อ่านง่าย ประหยัดหมึก */
             .calendar-grid { background-color: #e2e8f0 !important; border: 1px solid #cbd5e1 !important; }
             .calendar-cell { background-color: white !important; break-inside: avoid; min-height: 80px !important; }
             
-            /* สีตัวอักษรในตาราง */
             .text-bs-muted { color: #475569 !important; }
             .bg-bs-blue { background-color: #3b82f6 !important; color: white !important; }
             
-            /* ปรับป้ายกะทำงานให้สีชัดขึ้นบนพื้นขาว */
             .calendar-cell > div > div {
                 border-width: 1px !important;
                 border-style: solid !important;
-                color: #0f172a !important; /* ตัวอักษรเข้มขึ้น */
+                color: #0f172a !important;
             }
         }
     </style>
 </head>
 <body class="bg-bs-dark text-bs-text h-screen flex overflow-hidden selection:bg-bs-blue selection:text-white">
 
-    <!-- Overlay -->
     <div id="sidebarOverlay" class="fixed inset-0 bg-black/60 z-20 hidden md:hidden transition-opacity" onclick="toggleSidebar()"></div>
 
-    <!-- Sidebar -->
     <aside id="sidebar" class="fixed inset-y-0 left-0 z-30 w-72 sm:w-80 bg-bs-panel flex flex-col border-r border-bs-card transform -translate-x-full md:relative md:translate-x-0 transition-transform duration-300 ease-in-out flex-shrink-0">
         <div class="p-4 sm:p-5 border-b border-bs-card flex items-center justify-between">
             <div class="flex items-center gap-3">
@@ -106,7 +98,6 @@
         </div>
 
         <div class="flex-1 overflow-y-auto p-4 space-y-6">
-            <!-- จัดการพนักงาน -->
             <div>
                 <div class="flex justify-between items-center mb-3">
                     <h2 class="font-semibold text-bs-muted uppercase text-xs tracking-wider"><i class="fa-solid fa-users mr-2"></i>พนักงาน</h2>
@@ -123,7 +114,6 @@
 
             <hr class="border-bs-card">
 
-            <!-- จัดการกะ -->
             <div>
                 <div class="flex justify-between items-center mb-3">
                     <h2 class="font-semibold text-bs-muted uppercase text-xs tracking-wider"><i class="fa-solid fa-clock mr-2"></i>กะและเวลาทำงาน</h2>
@@ -145,9 +135,7 @@
         </div>
     </aside>
 
-    <!-- Main Content -->
     <main class="flex-1 flex flex-col h-screen overflow-hidden relative min-w-0">
-        <!-- Header -->
         <header class="bg-bs-panel h-16 flex items-center justify-between px-3 sm:px-6 border-b border-bs-card flex-shrink-0 relative z-10">
             <div class="flex items-center gap-2 sm:gap-4">
                 <button onclick="toggleSidebar()" class="md:hidden w-10 h-10 rounded bg-bs-blue hover:bg-bs-bluehover text-white flex items-center justify-center shadow-lg">
@@ -166,7 +154,6 @@
             </div>
             
             <div class="flex gap-2">
-                <!-- ปุ่ม พิมพ์/PDF -->
                 <button onclick="window.print()" class="text-bs-muted hover:text-bs-blue text-xs sm:text-sm flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1.5 rounded hover:bg-bs-blue/10 transition border border-transparent hover:border-bs-blue/20">
                     <i class="fa-solid fa-print"></i> <span class="hidden sm:inline">พิมพ์ / PDF</span>
                 </button>
@@ -177,7 +164,6 @@
             </div>
         </header>
 
-        <!-- Calendar Area -->
         <div class="flex-1 overflow-auto bg-bs-dark p-2 sm:p-4 pb-20 sm:pb-4" id="printArea">
             <div class="min-w-[700px] xl:min-w-full">
                 <div class="grid grid-cols-7 gap-1 mb-1 bg-bs-panel p-1 rounded-t border border-bs-card border-b-0">
@@ -213,12 +199,12 @@
         const state = {
             currentDate: new Date(),
             employees: [
-                { id: 'e1', name: 'สมชาย' }, { id: 'e2', name: 'สมหญิง' },
-                { id: 'e3', name: 'วิชัย' }, { id: 'e4', name: 'มาลี' }
+                { id: 'e1', name: 'นาย กอ. ไก่' }, { id: 'e2', name: 'นาย ขอ. ไข่' },
+                { id: 'e3', name: 'นาง คอ. ควาย' }, { id: 'e4', name: 'นาง งอ. งู' }
             ],
             shifts: [
-                { id: 's1', name: 'กะเช้า', time: '08:00 - 16:00', color: shiftColorPalette[0] },
-                { id: 's2', name: 'กะบ่าย', time: '16:00 - 24:00', color: shiftColorPalette[1] }
+                { id: 's1', name: 'กะเช้า', time: '08.00 - 16.00', color: shiftColorPalette[0] },
+                { id: 's2', name: 'กะบ่าย', time: '16.00 - 24.00', color: shiftColorPalette[1] }
             ],
             schedule: {} 
         };
@@ -326,24 +312,24 @@
             if(remainingCells < 7 && remainingCells > 0) { for (let i = 0; i < remainingCells; i++) grid.appendChild(createCalendarCell('', null)); }
         }
 
+        /* 🚀 แกะจุดนี้: ปรับ Layout การแสดงผลในเซลล์ปฏิทินให้เป็น 2 บรรทัดตามที่คุณขอ */
         function createCalendarCell(dayText, dateKey, isToday = false) {
             const div = document.createElement('div'); div.className = 'calendar-cell flex flex-col relative group';
             if (!dayText) { div.classList.add('opacity-30', 'bg-bs-dark'); return div; }
 
             const daySpanClass = isToday ? 'bg-bs-blue text-white w-5 h-5 sm:w-6 sm:h-6 rounded flex items-center justify-center text-[10px] sm:text-xs font-bold mb-1 shadow-md shadow-bs-blue/40 print:bg-black print:text-white print:shadow-none' : 'text-bs-muted text-[11px] sm:text-xs font-bold mb-1 pl-1 print:text-black';
             
-            let html = `<div class="${daySpanClass}">${dayText}</div><div class="flex-1 flex flex-col gap-0.5 sm:gap-1">`;
+            let html = `<div class="${daySpanClass}">${dayText}</div><div class="flex-1 flex flex-col gap-1">`;
 
             if (dateKey && state.schedule[dateKey]) {
                 state.shifts.forEach(shift => {
                     const empId = state.schedule[dateKey][shift.id];
                     if (empId) {
                         const emp = state.employees.find(e => e.id === empId); const empName = emp ? emp.name : '-';
-                        // Add class specifically for print layout inside JS generated HTML
                         html += `
-                            <div class="text-[9px] sm:text-[10px] px-1 sm:px-1.5 py-0.5 rounded border ${shift.color} flex justify-between items-center print:border-solid print:border-gray-400 print:text-black">
-                                <span class="font-semibold truncate opacity-80 max-w-[40%] print:opacity-100" title="${shift.time}">${shift.name}</span>
-                                <span class="truncate ml-1 text-white print:text-black print:font-semibold">${empName}</span>
+                            <div class="text-[9px] sm:text-[11px] px-1.5 py-1 rounded border ${shift.color} flex flex-col print:border-solid print:border-gray-400 print:text-black leading-tight">
+                                <span class="font-bold opacity-90 print:opacity-100">${shift.name} <span class="font-mono text-[8px] sm:text-[10px] opacity-75 font-normal ml-1">${shift.time}</span></span>
+                                <span class="text-right text-white print:text-black font-semibold mt-0.5 tracking-wide">${empName}</span>
                             </div>
                         `;
                     }
